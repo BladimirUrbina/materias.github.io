@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Materias y Calificaciones</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    canvas {
+        margin-top: 20px;
+    }
+    .registro {
+        margin-top: 10px;
+    }
+    .registro div {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .registro div input {
+        flex: 1;
+        margin-right: 5px;
+    }
+    .registro div button {
+        margin-left: 5px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Registro de Materias y Calificaciones</h1>
+    <div class="registro" id="registro">
+        <!-- Aquí se agregarán los campos de registro -->
+    </div>
+    <button onclick="agregarRegistro()">Agregar Registro</button>
+    <canvas id="grafica"></canvas>
+</div>
+
+<script>
+    let registros = [];
+    let ctx = document.getElementById('grafica').getContext('2d');
+    let myChart;
+
+    function agregarRegistro() {
+        const registroDiv = document.createElement('div');
+        registroDiv.classList.add('registro-item');
+
+        const materiaInput = document.createElement('input');
+        materiaInput.setAttribute('type', 'text');
+        materiaInput.setAttribute('placeholder', 'Materia');
+        registroDiv.appendChild(materiaInput);
+
+        const calificacionInput = document.createElement('input');
+        calificacionInput.setAttribute('type', 'number');
+        calificacionInput.setAttribute('placeholder', 'Calificación');
+        calificacionInput.setAttribute('min', '0');
+        calificacionInput.setAttribute('max', '10');
+        registroDiv.appendChild(calificacionInput);
+
+        const registrarButton = document.createElement('button');
+        registrarButton.textContent = 'Registrar';
+        registrarButton.addEventListener('click', () => registrarCalificacion(materiaInput.value, calificacionInput.value));
+        registroDiv.appendChild(registrarButton);
+
+        document.getElementById('registro').appendChild(registroDiv);
+    }
+
+    function registrarCalificacion(materia, calificacion) {
+        if (!materia || isNaN(calificacion) || calificacion < 0 || calificacion > 10) {
+            alert('Por favor ingrese una materia válida y una calificación entre 0 y 10.');
+            return;
+        }
+
+        registros.push({ materia, calificacion });
+        updateChart();
+    }
+
+    function eliminarRegistro(index) {
+        registros.splice(index, 1);
+        updateChart();
+    }
+
+    function modificarRegistro(index) {
+        const nuevaCalificacion = prompt('Ingrese la nueva calificación:');
+        const nuevaCalificacionNum = parseFloat(nuevaCalificacion);
+        if (!isNaN(nuevaCalificacionNum) && nuevaCalificacionNum >= 0 && nuevaCalificacionNum <= 10) {
+            registros[index].calificacion = nuevaCalificacionNum;
+            updateChart();
+        } else {
+            alert('Por favor ingrese una calificación válida entre 0 y 10.');
+        }
+    }
+
+    function updateChart() {
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        const labels = registros.map(registro => registro.materia);
+        const data = registros.map(registro => registro.calificacion);
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Calificación por Materia',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Añadir funcionalidad de modificar y eliminar
+        const chartItems = document.querySelectorAll('.registro-item');
+        chartItems.forEach((item, index) => {
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Eliminar';
+            deleteButton.addEventListener('click', () => eliminarRegistro(index));
+
+            const modifyButton = document.createElement('button');
+            modifyButton.textContent = 'Modificar';
+            modifyButton.addEventListener('click', () => modificarRegistro(index));
+
+            item.appendChild(deleteButton);
+            item.appendChild(modifyButton);
+        });
+    }
+</script>
+</body>
+</html>
